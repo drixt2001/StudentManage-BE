@@ -1,22 +1,32 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import * as fs from 'fs';
 import { domain } from '../../main';
+import { replaceName } from './upload.utils';
 
 @Injectable()
 export class PersonalService {
   async uploadPicture(path: string, Id: string): Promise<any> {
     if (fs.existsSync(`./assets/Pictures/${Id}`)) {
-      const newFileNumber = fs.readdirSync(`./assets/Pictures/${Id}`).length;
+      // const newFileNumber = fs.readdirSync(`./assets/Pictures/${Id}`).length;
 
-      const newPath = `./assets/Pictures/${Id}/${newFileNumber + 1}.jpg`;
+      const fileName = fs.readdirSync(`./assets/Pictures/${Id}`);
+      let genPath;
+      if (!fileName.length) {
+        genPath = `1.jpg`;
+      } else {
+        genPath = `${
+          Number(fileName[fileName.length - 1]?.split('.')[0]) + 1
+        }.jpg`;
+      }
 
+      const newPath = `./assets/Pictures/${Id}/` + genPath;
       fs.rename(path, newPath, function (err) {
         if (err)
           throw new NotFoundException('Quá trình chuyển thư mục thất bại');
       });
 
       return {
-        name: newFileNumber + 1 + '.jpg',
+        name: genPath,
         status: 'done',
         url: domain + newPath.substring(1),
         thumbUrl: domain + newPath.substring(1),
@@ -32,8 +42,7 @@ export class PersonalService {
       fs.readdirSync(`./assets/Pictures/${Id}`).forEach((file) => {
         fileName.push(file);
       });
-
-      return fileName.map((name) => {
+      const data = fileName.map((name) => {
         return {
           uid: name.split('.')[0],
           name: name,
@@ -41,6 +50,10 @@ export class PersonalService {
           url: domain + `/assets/Pictures/${Id}/${name}`,
         };
       });
+      return {
+        maxNumber: Number(data[data.length - 1]?.uid) || 0,
+        data: data,
+      };
     } else {
       throw new NotFoundException('Không Tìm Thấy Dữ Liệu Ảnh Người Dùng');
     }
@@ -48,8 +61,10 @@ export class PersonalService {
 
   RemovePicture(Id: string, fileName: string) {
     const filePath = `./assets/Pictures/${Id}/${fileName}`;
+    const folderPath = `./assets/Pictures/${Id}`;
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
+      // replaceName(folderPath);
       return {
         message: 'Xóa Thành Công!',
       };
