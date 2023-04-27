@@ -1,14 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import * as fs from 'fs';
 import { domain } from '../../main';
-import { replaceName } from './upload.utils';
 
 @Injectable()
 export class PersonalService {
   async uploadPicture(path: string, Id: string): Promise<any> {
     if (fs.existsSync(`./assets/Pictures/${Id}`)) {
-      // const newFileNumber = fs.readdirSync(`./assets/Pictures/${Id}`).length;
-
       const fileName = fs.readdirSync(`./assets/Pictures/${Id}`);
       let genPath;
       if (!fileName.length) {
@@ -64,7 +61,6 @@ export class PersonalService {
     const folderPath = `./assets/Pictures/${Id}`;
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
-      // replaceName(folderPath);
       return {
         message: 'Xóa Thành Công!',
       };

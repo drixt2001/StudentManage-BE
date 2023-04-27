@@ -53,4 +53,15 @@ export class PersonalController {
   uploadPersonModel(@Req() req, @Param('ID') Id: any): any {
     return this.service.uploadModel(req.body.model, Id);
   }
+
+  // Create Teacher
+  @HttpCode(200)
+  @Post('teacher/create')
+  createTeacher(@Req() req, @Body() body): any {
+    return {
+      message: body.isTeacher
+        ? 'Bạn đã tạo cá nhân - vai trò Giáo viên'
+        : 'Bạn đã tạo cá nhân - vai trò Sinh viên',
+    };
+  }
 }

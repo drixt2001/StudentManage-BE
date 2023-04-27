@@ -7,11 +7,3 @@ export const editFileName = (req, file, callback) => {
 
   callback(null, `${name}${fileExtName}`);
 };
-
-export function replaceName(folder) {
-  fs.readdirSync(folder).forEach((file, index) => {
-    fs.rename(`${folder}/${file}`, `${folder}/${index + 1}.jpg`, () => {
-      //
-    });
-  });
-}
