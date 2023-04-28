@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as fs from 'fs';
 import { domain } from '../../main';
 
@@ -83,5 +87,36 @@ export class PersonalService {
     } else {
       throw new NotFoundException('Không Tìm Thấy Thư Mục Người Dùng');
     }
+  }
+
+  getAll() {
+    const data = [];
+    fs.readdirSync(`./assets/Model`).forEach((folder) => {
+      if (fs.existsSync(`./assets/Model/${folder}/model.json`)) {
+        const model = JSON.parse(
+          fs.readFileSync(`./assets/Model/${folder}/model.json`, 'utf-8'),
+        );
+        if (model.descriptors.length) data.push(model);
+      }
+    });
+    return data;
+  }
+
+  createTeacher(body: any) {
+    const folderPics = `./assets/Pictures/${body.id}`;
+    const folderModel = `./assets/Model/${body.id}`;
+    if (!fs.existsSync(folderPics) && body.id) {
+      fs.mkdirSync(folderPics);
+    } else {
+      throw new ConflictException('Đã tồn tại');
+    }
+    if (!fs.existsSync(folderModel) && body.id) {
+      fs.mkdirSync(folderModel);
+    } else {
+      throw new ConflictException('Đã tồn tại');
+    }
+    return {
+      message: 'Tạo thành công!',
+    };
   }
 }
