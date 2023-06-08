@@ -4,10 +4,10 @@ import { IPostgresConfig } from './postgres-config.i';
 @Injectable()
 export class PostgresConfig {
   public postgres: IPostgresConfig = {
-    user: 'postgres',
-    host: 'localhost',
-    database: 'qlsv-2023',
-    password: 'postgres',
-    port: 5432,
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: Number(process.env.PGPORT),
   };
 }

@@ -5,8 +5,7 @@ import { PersonalModule } from './api/personal/personal.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { LoginModule } from './api/auth/login/login.module';
-import { AuthModule } from './auth/auth.module';
-import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -14,7 +13,9 @@ import { JwtModule } from '@nestjs/jwt';
       rootPath: join(__dirname, '..', 'assets'),
       serveRoot: '/assets/',
     }),
-
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+    }),
     PersonalModule,
     LoginModule,
   ],
