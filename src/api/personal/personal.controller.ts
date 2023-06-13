@@ -9,6 +9,7 @@ import {
   Delete,
   Body,
   Req,
+  Query,
 } from '@nestjs/common';
 import { PersonalService } from './personal.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -60,10 +61,18 @@ export class PersonalController {
     return this.service.getAll();
   }
 
-  // Create Teacher
+  // Create person
   @HttpCode(200)
-  @Post('teacher/create')
+  @Post('create')
   createTeacher(@Req() req, @Body() body): any {
-    return this.service.createTeacher(body);
+    console.log(body);
+    return this.service.createTeacher(body.type, body.data);
+  }
+
+  //get list person
+  @HttpCode(200)
+  @Get('list')
+  getList(@Req() req, @Query('type') type: string): any {
+    return this.service.getList(type);
   }
 }

@@ -5,9 +5,13 @@ import {
 } from '@nestjs/common';
 import * as fs from 'fs';
 import { domain } from '../../main';
+import { SqlConnectService } from 'src/database/query/sql-query.service';
+import { map, mergeMap } from 'rxjs';
 
 @Injectable()
 export class PersonalService {
+  constructor(private readonly sql: SqlConnectService) {}
+
   async uploadPicture(path: string, Id: string): Promise<any> {
     if (fs.existsSync(`./assets/Pictures/${Id}`)) {
       const fileName = fs.readdirSync(`./assets/Pictures/${Id}`);
@@ -102,21 +106,121 @@ export class PersonalService {
     return data;
   }
 
-  createTeacher(body: any) {
+  createTeacher(type: string, body: any) {
     const folderPics = `./assets/Pictures/${body.id}`;
     const folderModel = `./assets/Model/${body.id}`;
-    if (!fs.existsSync(folderPics) && body.id) {
-      fs.mkdirSync(folderPics);
+
+    if (type === 'teacher') {
+      const query = `INSERT INTO accounts
+      (sid, role_id, "name", birthday, department_id)
+      VALUES($1, $2, $3, $4, $5) returning id;                            
+      `;
+      const params = [
+        body.id,
+        1,
+        body.name,
+        body.birthday,
+        Number(body.deparment),
+      ];
+      return this.sql.query(query, params).pipe(
+        mergeMap((res) => {
+          const query = `INSERT INTO teacher
+          (acc_id, position)
+          VALUES($1, $2);
+          `;
+          const params = [res.rows[0].id, body.role];
+          return this.sql.query(query, params).pipe(
+            map(() => {
+              if (!fs.existsSync(folderPics) && body.id) {
+                fs.mkdirSync(folderPics);
+              } else {
+                throw new ConflictException('Đã tồn tại');
+              }
+              if (!fs.existsSync(folderModel) && body.id) {
+                fs.mkdirSync(folderModel);
+              } else {
+                throw new ConflictException('Đã tồn tại');
+              }
+              return { message: 'Tạo thành công!' };
+            }),
+          );
+        }),
+      );
     } else {
-      throw new ConflictException('Đã tồn tại');
+      const query = `INSERT INTO accounts
+      (sid, role_id, "name", birthday, department_id)
+      VALUES($1, $2, $3, $4, $5) returning id;                            
+      `;
+      const params = [
+        body.id,
+        1,
+        body.name,
+        body.birthday,
+        Number(body.deparment),
+      ];
+      return this.sql.query(query, params).pipe(
+        mergeMap((res) => {
+          const query = `INSERT INTO student
+          (acc_id, class_id, academic_year)
+          VALUES($1, $2, '2019-2023');
+          `;
+          const params = [res.rows[0].id, body.class];
+          return this.sql.query(query, params).pipe(
+            map(() => {
+              if (!fs.existsSync(folderPics) && body.id) {
+                fs.mkdirSync(folderPics);
+              } else {
+                throw new ConflictException('Đã tồn tại');
+              }
+              if (!fs.existsSync(folderModel) && body.id) {
+                fs.mkdirSync(folderModel);
+              } else {
+                throw new ConflictException('Đã tồn tại');
+              }
+              return { message: 'Tạo thành công!' };
+            }),
+          );
+        }),
+      );
     }
-    if (!fs.existsSync(folderModel) && body.id) {
-      fs.mkdirSync(folderModel);
+  }
+
+  getList(type: string) {
+    let query: string;
+    let ms: string;
+
+    if (type === 'teacher') {
+      query = `SELECT a.sid as id, a.name, a.birthday, d.short_name AS department FROM accounts a, departments d , teacher t 
+      WHERE a.id = t.acc_id AND a.department_id = d.id`;
+      ms = 'Lấy dữ liệu Giảng Viên thành công';
     } else {
-      throw new ConflictException('Đã tồn tại');
+      query = `SELECT a.sid as id, a.name, a.birthday, d.short_name AS department, c.short_name AS class_name FROM accounts a, departments d, student s, "class" c  
+      WHERE a.id = s.acc_id AND a.department_id = d.id AND c.id = s.class_id `;
+      ms = 'Lấy dữ liệu Sinh Viên thành công';
     }
-    return {
-      message: 'Tạo thành công!',
-    };
+
+    return this.sql.query(query).pipe(
+      map((data) => {
+        return {
+          status: 'Thành công',
+          message: ms,
+          data: data.rows.map((row) => {
+            return { ...row, pictures: this.getCountPic(row.id) };
+          }),
+        };
+      }),
+    );
+  }
+
+  getCountPic(Id: any) {
+    if (fs.existsSync(`./assets/Pictures/${Id}`)) {
+      let fileCount = 0;
+      fs.readdirSync(`./assets/Pictures/${Id}`).forEach((file) => {
+        fileCount = fileCount + 1;
+      });
+      return fileCount;
+    } else {
+      return 0;
+    }
   }
 }
