@@ -115,13 +115,7 @@ export class PersonalService {
       (sid, role_id, "name", birthday, department_id)
       VALUES($1, $2, $3, $4, $5) returning id;                            
       `;
-      const params = [
-        body.id,
-        1,
-        body.name,
-        body.birthday,
-        Number(body.deparment),
-      ];
+      const params = [body.id, 1, body.name, body.birthday, body.department];
       return this.sql.query(query, params).pipe(
         mergeMap((res) => {
           const query = `INSERT INTO teacher
@@ -151,13 +145,7 @@ export class PersonalService {
       (sid, role_id, "name", birthday, department_id)
       VALUES($1, $2, $3, $4, $5) returning id;                            
       `;
-      const params = [
-        body.id,
-        1,
-        body.name,
-        body.birthday,
-        Number(body.deparment),
-      ];
+      const params = [body.id, 1, body.name, body.birthday, body.department];
       return this.sql.query(query, params).pipe(
         mergeMap((res) => {
           const query = `INSERT INTO student
@@ -212,6 +200,30 @@ export class PersonalService {
     );
   }
 
+  getDetail(type: string, id: string) {
+    let query: string;
+    let ms: string;
+
+    if (type === 'teacher') {
+      query = `SELECT a.sid as id, a.name, a.birthday, d.id AS department, t.position as role FROM accounts a, departments d , teacher t 
+      WHERE a.id = t.acc_id AND a.department_id = d.id AND a.sid = $1`;
+      ms = 'Lấy dữ liệu Giảng Viên thành công';
+    } else {
+      query = `SELECT a.sid as id, a.name, a.birthday, d.id AS department, c.short_name AS class_name, c.id as "class" FROM accounts a, departments d, student s, "class" c  
+      WHERE a.id = s.acc_id AND a.department_id = d.id AND c.id = s.class_id AND a.sid = $1`;
+      ms = 'Lấy dữ liệu Sinh Viên thành công';
+    }
+
+    return this.sql.query(query, [id]).pipe(
+      map((data) => {
+        return {
+          status: 'Thành công',
+          message: ms,
+          data: data.rows[0],
+        };
+      }),
+    );
+  }
   getCountPic(Id: any) {
     if (fs.existsSync(`./assets/Pictures/${Id}`)) {
       let fileCount = 0;

@@ -75,4 +75,15 @@ export class PersonalController {
   getList(@Req() req, @Query('type') type: string): any {
     return this.service.getList(type);
   }
+
+  // get details
+  @HttpCode(200)
+  @Get('detail/:ID')
+  getDetail(
+    @Req() req,
+    @Param('ID') Id: any,
+    @Query('type') type: string,
+  ): any {
+    return this.service.getDetail(type, Id);
+  }
 }
