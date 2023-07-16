@@ -154,7 +154,16 @@ export class PersonalService {
       (sid, role_id, "name", birthday, department_id, email, password, address)
       VALUES($1, $2, $3, $4, $5, $6, $7, $8) returning id;                        
       `;
-      const params = [body.id, 2, body.name, body.birthday, body.department];
+      const params = [
+        body.id,
+        2,
+        body.name,
+        body.birthday,
+        body.department,
+        body.email,
+        body.password,
+        body.address,
+      ];
       return this.sql.query(query, params).pipe(
         mergeMap((res) => {
           const query = `INSERT INTO student
@@ -187,7 +196,7 @@ export class PersonalService {
     let ms: string;
 
     if (type === 'teacher') {
-      query = `SELECT a.sid as id, a.name, a.birthday, d.short_name AS department, a.email, a.address FROM accounts a, departments d , teacher t 
+      query = `SELECT a.sid as id, a.name, a.birthday, d.short_name AS department, a.email, a.address, a.id as teacher_id FROM accounts a, departments d , teacher t 
       WHERE a.id = t.acc_id AND a.department_id = d.id`;
       ms = 'Lấy dữ liệu Giảng Viên thành công';
     } else {

@@ -7,6 +7,8 @@ import { join } from 'path';
 import { LoginModule } from './api/auth/login/login.module';
 import { ConfigModule } from '@nestjs/config';
 import { DepartmentModule } from './api/department/department.module';
+import { PeriodModule } from './api/period/period.module';
+import { ModuleModule } from './api/module/module.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { DepartmentModule } from './api/department/department.module';
     PersonalModule,
     LoginModule,
     DepartmentModule,
+    PeriodModule,
+    ModuleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
