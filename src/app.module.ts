@@ -6,6 +6,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { LoginModule } from './api/auth/login/login.module';
 import { ConfigModule } from '@nestjs/config';
+import { DepartmentModule } from './api/department/department.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     PersonalModule,
     LoginModule,
+    DepartmentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -112,10 +112,19 @@ export class PersonalService {
 
     if (type === 'teacher') {
       const query = `INSERT INTO accounts
-      (sid, role_id, "name", birthday, department_id)
-      VALUES($1, $2, $3, $4, $5) returning id;                            
+      (sid, role_id, "name", birthday, department_id, email, password, address)
+      VALUES($1, $2, $3, $4, $5, $6, $7, $8) returning id;                            
       `;
-      const params = [body.id, 1, body.name, body.birthday, body.department];
+      const params = [
+        body.id,
+        1,
+        body.name,
+        body.birthday,
+        body.department,
+        body.email,
+        body.password,
+        body.address,
+      ];
       return this.sql.query(query, params).pipe(
         mergeMap((res) => {
           const query = `INSERT INTO teacher
@@ -142,10 +151,10 @@ export class PersonalService {
       );
     } else {
       const query = `INSERT INTO accounts
-      (sid, role_id, "name", birthday, department_id)
-      VALUES($1, $2, $3, $4, $5) returning id;                            
+      (sid, role_id, "name", birthday, department_id, email, password, address)
+      VALUES($1, $2, $3, $4, $5, $6, $7, $8) returning id;                        
       `;
-      const params = [body.id, 1, body.name, body.birthday, body.department];
+      const params = [body.id, 2, body.name, body.birthday, body.department];
       return this.sql.query(query, params).pipe(
         mergeMap((res) => {
           const query = `INSERT INTO student
@@ -173,20 +182,28 @@ export class PersonalService {
     }
   }
 
-  getList(type: string) {
+  getList(type: string, department: string, class_id: string, name: string) {
     let query: string;
     let ms: string;
 
     if (type === 'teacher') {
-      query = `SELECT a.sid as id, a.name, a.birthday, d.short_name AS department FROM accounts a, departments d , teacher t 
+      query = `SELECT a.sid as id, a.name, a.birthday, d.short_name AS department, a.email, a.address FROM accounts a, departments d , teacher t 
       WHERE a.id = t.acc_id AND a.department_id = d.id`;
       ms = 'Lấy dữ liệu Giảng Viên thành công';
     } else {
-      query = `SELECT a.sid as id, a.name, a.birthday, d.short_name AS department, c.short_name AS class_name FROM accounts a, departments d, student s, "class" c  
+      query = `SELECT a.sid as id, a.name, a.birthday, d.short_name AS department, c.short_name AS class_name, a.email, a.address FROM accounts a, departments d, student s, "class" c  
       WHERE a.id = s.acc_id AND a.department_id = d.id AND c.id = s.class_id `;
       ms = 'Lấy dữ liệu Sinh Viên thành công';
     }
-
+    if (department) {
+      query += ` AND d.id = ${department}`;
+    }
+    if (class_id) {
+      query += ` AND c.id = ${class_id}`;
+    }
+    if (name) {
+      query += ` AND a."name" ILIKE '%${name}%'`;
+    }
     return this.sql.query(query).pipe(
       map((data) => {
         return {
@@ -205,11 +222,11 @@ export class PersonalService {
     let ms: string;
 
     if (type === 'teacher') {
-      query = `SELECT a.sid as id, a.name, a.birthday, d.id AS department, t.position as role FROM accounts a, departments d , teacher t 
+      query = `SELECT a.sid as id, a.name, a.birthday, d.id AS department, t.position as role, a.email, a.password, a.address FROM accounts a, departments d , teacher t 
       WHERE a.id = t.acc_id AND a.department_id = d.id AND a.sid = $1`;
       ms = 'Lấy dữ liệu Giảng Viên thành công';
     } else {
-      query = `SELECT a.sid as id, a.name, a.birthday, d.id AS department, c.short_name AS class_name, c.id as "class" FROM accounts a, departments d, student s, "class" c  
+      query = `SELECT a.sid as id, a.name, a.birthday, d.id AS department, c.short_name AS class_name, c.id as "class", a.email, a.password, a.address FROM accounts a, departments d, student s, "class" c  
       WHERE a.id = s.acc_id AND a.department_id = d.id AND c.id = s.class_id AND a.sid = $1`;
       ms = 'Lấy dữ liệu Sinh Viên thành công';
     }
@@ -224,6 +241,7 @@ export class PersonalService {
       }),
     );
   }
+
   getCountPic(Id: any) {
     if (fs.existsSync(`./assets/Pictures/${Id}`)) {
       let fileCount = 0;

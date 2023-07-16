@@ -72,8 +72,14 @@ export class PersonalController {
   //get list person
   @HttpCode(200)
   @Get('list')
-  getList(@Req() req, @Query('type') type: string): any {
-    return this.service.getList(type);
+  getList(
+    @Req() req,
+    @Query('type') type: string,
+    @Query('department') department: string,
+    @Query('class_id') class_id: string,
+    @Query('name') name: string,
+  ): any {
+    return this.service.getList(type, department, class_id, name);
   }
 
   // get details
