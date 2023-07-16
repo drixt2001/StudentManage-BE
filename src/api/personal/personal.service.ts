@@ -7,10 +7,14 @@ import * as fs from 'fs';
 import { domain } from '../../main';
 import { SqlConnectService } from 'src/database/query/sql-query.service';
 import { map, mergeMap } from 'rxjs';
+import { ModuleService } from '../module/module.service';
 
 @Injectable()
 export class PersonalService {
-  constructor(private readonly sql: SqlConnectService) {}
+  constructor(
+    private readonly sql: SqlConnectService,
+    private moduleService: ModuleService,
+  ) {}
 
   async uploadPicture(path: string, Id: string): Promise<any> {
     if (fs.existsSync(`./assets/Pictures/${Id}`)) {
@@ -93,17 +97,36 @@ export class PersonalService {
     }
   }
 
-  getAll() {
-    const data = [];
-    fs.readdirSync(`./assets/Model`).forEach((folder) => {
-      if (fs.existsSync(`./assets/Model/${folder}/model.json`)) {
-        const model = JSON.parse(
-          fs.readFileSync(`./assets/Model/${folder}/model.json`, 'utf-8'),
-        );
-        if (model.descriptors.length) data.push(model);
-      }
-    });
-    return data;
+  getAll(module_id?: string) {
+    if (module_id) {
+      return this.moduleService.getDetail(module_id).pipe(
+        map((val) => {
+          if (val.data.students) {
+            return val.data.students.map((val) => val.id);
+          } else {
+            return [];
+          }
+        }),
+        map((listId) => {
+          return (
+            listId.length &&
+            listId
+              .map((id) => {
+                if (fs.existsSync(`./assets/Model/${id}/model.json`)) {
+                  const model = JSON.parse(
+                    fs.readFileSync(`./assets/Model/${id}/model.json`, 'utf-8'),
+                  );
+                  if (model.descriptors.length) return model;
+                }
+              })
+              .filter((val) => val != null)
+          );
+        }),
+        map((val) => {
+          return val;
+        }),
+      );
+    }
   }
 
   createTeacher(type: string, body: any) {
@@ -200,7 +223,7 @@ export class PersonalService {
       WHERE a.id = t.acc_id AND a.department_id = d.id`;
       ms = 'Lấy dữ liệu Giảng Viên thành công';
     } else {
-      query = `SELECT a.sid as id, a.name, a.birthday, d.short_name AS department, c.short_name AS class_name, a.email, a.address FROM accounts a, departments d, student s, "class" c  
+      query = `SELECT a.sid as id, a.name, a.birthday, d.short_name AS department, c.short_name AS class_name, a.email, a.address, a.id as student_id FROM accounts a, departments d, student s, "class" c  
       WHERE a.id = s.acc_id AND a.department_id = d.id AND c.id = s.class_id `;
       ms = 'Lấy dữ liệu Sinh Viên thành công';
     }

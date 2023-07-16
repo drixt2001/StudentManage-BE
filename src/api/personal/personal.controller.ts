@@ -56,9 +56,9 @@ export class PersonalController {
   }
 
   @HttpCode(200)
-  @Get('model/all')
-  getAllModel(@Req() req): any {
-    return this.service.getAll();
+  @Get('model/:module_id')
+  getAllModel(@Req() req, @Param('module_id') module_id: any): any {
+    return this.service.getAll(module_id);
   }
 
   // Create person
