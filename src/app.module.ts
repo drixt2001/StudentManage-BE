@@ -9,6 +9,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DepartmentModule } from './api/department/department.module';
 import { PeriodModule } from './api/period/period.module';
 import { ModuleModule } from './api/module/module.module';
+import { AppGateway } from './app/app.gateway';
 
 @Module({
   imports: [
@@ -26,6 +27,6 @@ import { ModuleModule } from './api/module/module.module';
     ModuleModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AppGateway],
 })
 export class AppModule {}
