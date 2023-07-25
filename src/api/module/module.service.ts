@@ -23,7 +23,7 @@ export class ModuleService {
       FROM
         module_student
       WHERE
-        module_id = 10
+        module_id = m.id 
     ) as count_student
   FROM
     modules m,
