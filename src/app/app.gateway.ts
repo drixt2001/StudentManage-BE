@@ -41,4 +41,9 @@ export class AppGateway
   get(client: any, message: any) {
     this.server.emit('get', this.classOnline);
   }
+
+  @SubscribeMessage('sendResult')
+  sendResultRollCalling(client: any, message: any) {
+    console.log(message);
+  }
 }
