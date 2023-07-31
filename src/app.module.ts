@@ -10,6 +10,9 @@ import { DepartmentModule } from './api/department/department.module';
 import { PeriodModule } from './api/period/period.module';
 import { ModuleModule } from './api/module/module.module';
 import { AppGateway } from './app/app.gateway';
+import { ModuleService } from './api/module/module.service';
+import { SqlConnectService } from './database/query/sql-query.service';
+import { PostgresConfigModule } from './database/connect/postgres-config.module';
 
 @Module({
   imports: [
@@ -25,8 +28,9 @@ import { AppGateway } from './app/app.gateway';
     DepartmentModule,
     PeriodModule,
     ModuleModule,
+    PostgresConfigModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AppGateway],
+  providers: [AppService, AppGateway, ModuleService, SqlConnectService],
 })
 export class AppModule {}

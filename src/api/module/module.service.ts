@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { catchError, from, map, mergeMap } from 'rxjs';
+import { catchError, from, map, mergeMap, of, switchMap } from 'rxjs';
 import { SqlConnectService } from 'src/database/query/sql-query.service';
 
 @Injectable()
@@ -17,6 +17,8 @@ export class ModuleService {
     number_credit AS credit,
     m.allow_delay,
     m.allow_leaving,
+    m.allow_min_percent,
+    m.time_repeat_check,
     (
       SELECT
         COUNT(student_id)
@@ -63,6 +65,8 @@ export class ModuleService {
     a.id AS teacher_id,
     m.allow_delay,
     m.allow_leaving,
+    m.allow_min_percent,
+    m.time_repeat_check,
     (
     SELECT
       array_to_json(array_agg(students)) AS students
@@ -238,12 +242,18 @@ export class ModuleService {
 
   updateAllow(id: any, data: any) {
     const query = `UPDATE modules
-    SET allow_delay = $1, allow_leaving = $2
-    WHERE id = $3;
+    SET allow_delay = $1, allow_leaving = $2, allow_min_percent = $3, time_repeat_check = $4
+    WHERE id = $5;
     `;
 
     return this.sql
-      .query(query, [data.allow_delay, data.allow_leaving, id])
+      .query(query, [
+        data.allow_delay,
+        data.allow_leaving,
+        data.allow_min_percent,
+        data.time_repeat_check,
+        id,
+      ])
       .pipe(
         map(() => {
           return {
@@ -252,5 +262,122 @@ export class ModuleService {
           };
         }),
       );
+  }
+
+  addRollCallDay(module_id: number, weekday_id: number, date: string) {
+    const query = `INSERT INTO roll_call_list
+    (module_id, weekday_id, "date")
+    VALUES($1, $2, $3) RETURNING id;    
+    `;
+
+    return this.sql.query(query, [module_id, weekday_id, date]).pipe(
+      map((res) => {
+        return {
+          status: 'success',
+          message: 'add successfully',
+          data: res.rows[0],
+        };
+      }),
+    );
+  }
+
+  getRollCallDay(module_id: number, weekday_id: number, date: string) {
+    const query = `SELECT id, module_id, weekday_id, "date"
+    FROM roll_call_list
+    WHERE module_id = $1 AND weekday_id = $2 AND "date" = $3;        
+    `;
+
+    return this.sql.query(query, [module_id, weekday_id, date]).pipe(
+      map((res) => {
+        return {
+          status: 'success',
+          message: 'get successfully',
+          data: res.rows[0] || null,
+        };
+      }),
+    );
+  }
+
+  upsertRollCallDetail(
+    roll_call_id: number,
+    module_id: number,
+    listData: any[],
+  ) {
+    const query = `INSERT
+        INTO
+        roll_call_details
+      ( module_id,
+        roll_call_id,
+        student_id,
+        minute_join,
+        total_percent,
+        delay,
+        leave
+      )
+      VALUES($1,
+        $2,
+        $3,
+      $4,
+      $5,
+      $6,
+      $7)
+      
+      ON
+      CONFLICT (roll_call_id,
+      student_id,
+      module_id) DO
+      UPDATE
+      SET
+        minute_join = $4,
+        total_percent = $5,
+        delay = $6,
+        leave = $7
+      `;
+
+    return of(null).pipe(
+      switchMap(() => {
+        return from(listData).pipe(
+          switchMap((rollData: any) => {
+            const params = [
+              module_id,
+              roll_call_id,
+              rollData.student_id,
+              rollData.minuteJoin,
+              rollData.percentJoin,
+              rollData.isDelay,
+              rollData.isLeave,
+            ];
+            return this.sql.query(query, params).pipe();
+          }),
+        );
+      }),
+      switchMap(() => {
+        return this.getRollCallDetail(roll_call_id).pipe();
+      }),
+      map((res) => {
+        return {
+          status: 'success',
+          message: 'successfully',
+          data: res.data,
+        };
+      }),
+    );
+  }
+
+  getRollCallDetail(roll_call_id: number) {
+    const query = `SELECT module_id, roll_call_id, student_id, minute_join, total_percent, delay, leave
+    FROM roll_call_details
+    WHERE roll_call_id= $1    
+      `;
+
+    return this.sql.query(query, [roll_call_id]).pipe(
+      map((res) => {
+        return {
+          status: 'success',
+          message: 'get successfully',
+          data: res.rows,
+        };
+      }),
+    );
   }
 }
