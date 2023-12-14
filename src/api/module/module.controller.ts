@@ -67,4 +67,14 @@ export class ModuleController {
   getRollCallListStudent(@Param('id') id: any): any {
     return this.service.getRollCallListStudent(id);
   }
+
+  @Get('leave/:id')
+  getLeave(@Param('id') id: any): any {
+    return this.service.getLeave(id);
+  }
+
+  @Put('leave/:id/:flag')
+  updateLeave(@Param('id') id: any, @Param('flag') flag: any): any {
+    return this.service.updateLeave(id, flag);
+  }
 }

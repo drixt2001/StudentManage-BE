@@ -422,4 +422,39 @@ export class ModuleService {
       }),
     );
   }
+
+  getLeave(module_id: any) {
+    const query = `SELECT id, student_id, module_id, "date", approve
+    FROM absence
+    WHERE module_id = $1   
+      `;
+
+    return this.sql.query(query, [module_id]).pipe(
+      map((res) => {
+        return {
+          status: 'success',
+          message: 'get successfully',
+          data: res.rows,
+        };
+      }),
+    );
+  }
+
+  updateLeave(id: any, flag) {
+    const query = `UPDATE absence
+    SET approve= $2
+    WHERE id= $1;
+     
+      `;
+
+    return this.sql.query(query, [id, flag]).pipe(
+      map((res) => {
+        return {
+          status: 'success',
+          message: 'update successfully',
+          data: res.rows,
+        };
+      }),
+    );
+  }
 }
