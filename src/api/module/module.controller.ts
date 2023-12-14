@@ -57,4 +57,14 @@ export class ModuleController {
   deleteStudent(@Param('id') id: any) {
     return this.service.deleteStudent(id);
   }
+
+  @Get('list/:id')
+  getRollCallList(@Param('id') id: any): any {
+    return this.service.getRollCallList(id);
+  }
+
+  @Get('list-student/:id')
+  getRollCallListStudent(@Param('id') id: any): any {
+    return this.service.getRollCallListStudent(id);
+  }
 }

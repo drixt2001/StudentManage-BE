@@ -285,4 +285,30 @@ export class PersonalService {
       return 0;
     }
   }
+
+  delete(id: any) {
+    return this.sql.query('DELETE FROM accounts WHERE sid=$1', [id]).pipe(
+      map((data) => {
+        if (data.rowCount !== 1) {
+          throw new NotFoundException(`Không tìm thấy`);
+        } else {
+          const folderPath = `./assets/Pictures/${id}`;
+          const folderPathModel = `./assets/Model/${id}`;
+          if (fs.existsSync(folderPath)) {
+            fs.rmSync(folderPath, { recursive: true, force: true });
+          }
+
+          if (fs.existsSync(folderPathModel)) {
+            fs.rmSync(folderPathModel, { recursive: true, force: true });
+          }
+
+          return {
+            status: 'success',
+            message: `delete ${id} successfully`,
+            data: data.rows,
+          };
+        }
+      }),
+    );
+  }
 }

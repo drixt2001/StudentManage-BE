@@ -10,6 +10,7 @@ import {
   Body,
   Req,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { PersonalService } from './personal.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -91,5 +92,10 @@ export class PersonalController {
     @Query('type') type: string,
   ): any {
     return this.service.getDetail(type, Id);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.service.delete(id);
   }
 }

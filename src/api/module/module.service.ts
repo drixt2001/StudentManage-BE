@@ -380,4 +380,46 @@ export class ModuleService {
       }),
     );
   }
+
+  getRollCallList(roll_call_id: number) {
+    const query = `SELECT
+    id,
+    module_id,
+    weekday_id,
+    "date"
+  FROM
+    roll_call_list
+  WHERE
+    module_id = $1
+  ORDER BY
+    "date" DESC   
+      `;
+
+    return this.sql.query(query, [roll_call_id]).pipe(
+      map((res) => {
+        return {
+          status: 'success',
+          message: 'get successfully',
+          data: res.rows,
+        };
+      }),
+    );
+  }
+
+  getRollCallListStudent(module_id: any) {
+    const query = `SELECT module_id, roll_call_id, student_id, minute_join, total_percent, delay, leave
+    FROM roll_call_details
+    WHERE module_id = $1   
+      `;
+
+    return this.sql.query(query, [module_id]).pipe(
+      map((res) => {
+        return {
+          status: 'success',
+          message: 'get successfully',
+          data: res.rows,
+        };
+      }),
+    );
+  }
 }
