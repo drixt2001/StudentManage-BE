@@ -7,7 +7,7 @@ const production = process.env.PRODUCTION.toLowerCase() === 'true';
 export const domain = production
   ? process.env.DOMAIN
   : process.env.DOMAIN || host + ':' + port;
-
+console.log(domain);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
